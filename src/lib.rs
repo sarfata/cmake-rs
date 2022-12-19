@@ -82,6 +82,7 @@ pub struct Config {
     pic: Option<bool>,
     c_cfg: Option<cc::Build>,
     cxx_cfg: Option<cc::Build>,
+    no_default_flags: Option<bool>,
     env_cache: HashMap<String, Option<OsString>>,
 }
 
@@ -206,6 +207,7 @@ impl Config {
             pic: None,
             c_cfg: None,
             cxx_cfg: None,
+            no_default_flags: None,
             env_cache: HashMap::new(),
         }
     }
@@ -420,6 +422,12 @@ impl Config {
         self
     }
 
+    /// Sets the "no_default_options" configuration on CC and CXX config
+    pub fn no_default_flags(&mut self, no_default_options: bool) -> &mut Config {
+        self.no_default_flags = Some(no_default_options);
+        self
+    }
+
     /// Run this configuration, compiling the library with all the configured
     /// options.
     ///
@@ -510,7 +518,7 @@ impl Config {
             .debug(false)
             .warnings(false)
             .host(&host)
-            .no_default_flags(ndk);
+            .no_default_flags(ndk || self.no_default_flags.unwrap_or(false));
         if !ndk {
             c_cfg.target(&target);
         }
@@ -522,7 +530,7 @@ impl Config {
             .debug(false)
             .warnings(false)
             .host(&host)
-            .no_default_flags(ndk);
+            .no_default_flags(ndk || self.no_default_flags.unwrap_or(false));
         if !ndk {
             cxx_cfg.target(&target);
         }
